@@ -72,6 +72,19 @@ function shuffle(arr) {
     return a;
 }
 
+// ── Shuffle Options within a question ──
+function shuffleOptions(question) {
+    const q = { ...question };
+    // Build index mapping: create array of indices [0,1,2,...] and shuffle
+    const indices = q.options.map((_, i) => i);
+    const shuffled = shuffle(indices);
+    // Reorder options
+    q.options = shuffled.map(i => question.options[i]);
+    // Remap correct answer indices
+    q.correct = question.correct.map(ci => shuffled.indexOf(ci));
+    return q;
+}
+
 // ── Landing ──
 function goToLanding() {
     stopTimer();
@@ -103,9 +116,9 @@ function startQuiz(mode, category) {
     startTime = Date.now();
 
     if (category) {
-        activeQuestions = shuffle(QUESTIONS.filter(q => q.category === category));
+        activeQuestions = shuffle(QUESTIONS.filter(q => q.category === category)).map(shuffleOptions);
     } else {
-        activeQuestions = shuffle(QUESTIONS);
+        activeQuestions = shuffle(QUESTIONS).map(shuffleOptions);
     }
 
     userAnswers = activeQuestions.map(() => []);
@@ -209,7 +222,7 @@ function renderQuestion() {
     // Options
     const list = $('options-list');
     list.innerHTML = '';
-    const letters = 'ABCDEFG';
+    const letters = 'ABCDEFGH';
     q.options.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
@@ -222,8 +235,8 @@ function renderQuestion() {
             if (userAnswers[currentIndex].includes(i) && !q.correct.includes(i)) btn.classList.add('incorrect');
         }
 
-        const letterText = opt.match(/^[A-G]\.\s/) ? opt.charAt(0) : letters[i];
-        const optText = opt.replace(/^[A-G]\.\s*/, '');
+        const letterText = letters[i];
+        const optText = opt.replace(/^[A-H]\.\s*/, '');
 
         btn.innerHTML = `<span class="option-letter">${letterText}</span><span>${optText}</span>`;
         btn.onclick = () => selectOption(i);
